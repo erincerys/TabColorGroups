@@ -62,6 +62,30 @@ function basenameFromKey(key: string): string {
 	return key;
 }
 
+function splitProjectPath(uri: vscode.Uri): { project: string; relativePath: string } | undefined {
+	const folder = vscode.workspace.getWorkspaceFolder(uri);
+	if (folder) {
+		return { project: folder.name, relativePath: uri.path.slice(folder.uri.path.length).replace(/^\/+/, '') };
+	}
+	const segments = uri.path.split('/');
+	return segments.length > 2 ? { project: segments[segments.length - 2], relativePath: segments[segments.length - 1] } : undefined;
+}
+
+function buildTabTooltip(uri: vscode.Uri, label: string): vscode.MarkdownString {
+	const tooltip = new vscode.MarkdownString();
+	tooltip.supportHtml = true;
+	const split = splitProjectPath(uri);
+	if (split) {
+		tooltip.appendMarkdown('<span style="color:var(--vscode-descriptionForeground);">');
+		tooltip.appendText(`${split.project}/`);
+		tooltip.appendMarkdown('</span>');
+	}
+	tooltip.appendText(split?.relativePath || label);
+	tooltip.appendMarkdown('\n\n');
+	tooltip.appendText(uri.scheme === 'file' ? uri.fsPath : uri.toString(true));
+	return tooltip;
+}
+
 export class TabGroupsTreeDataProvider implements vscode.TreeDataProvider<TreeNode>, vscode.TreeDragAndDropController<TreeNode> {
 	private readonly _onDidChangeTreeData = new vscode.EventEmitter<TreeNode | undefined | void>();
 	readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
@@ -73,6 +97,7 @@ export class TabGroupsTreeDataProvider implements vscode.TreeDataProvider<TreeNo
 		manager.onDidChange(() => this._onDidChangeTreeData.fire());
 		vscode.window.tabGroups.onDidChangeTabs(() => this._onDidChangeTreeData.fire());
 		vscode.window.tabGroups.onDidChangeTabGroups(() => this._onDidChangeTreeData.fire());
+		vscode.workspace.onDidChangeWorkspaceFolders(() => this._onDidChangeTreeData.fire());
 	}
 
 	refresh(): void {
@@ -188,18 +213,20 @@ export class TabGroupsTreeDataProvider implements vscode.TreeDataProvider<TreeNo
 		const item = new vscode.TreeItem(label, vscode.TreeItemCollapsibleState.None);
 		item.id = id;
 		item.contextValue = contextValue;
+		const uri = uriFromKey(key);
 		if (themeColorId) {
 			item.iconPath = new vscode.ThemeIcon('circle-filled', new vscode.ThemeColor(themeColorId));
+		} else if (uri) {
+			item.resourceUri = uri;
 		} else {
-			const uri = uriFromKey(key);
-			if (uri) {
-				item.resourceUri = uri;
-			} else {
-				item.iconPath = new vscode.ThemeIcon('file');
-			}
+			item.iconPath = new vscode.ThemeIcon('file');
 		}
-		if (!tab) {
-			item.description = 'closed';
+		const details = [uri && splitProjectPath(uri)?.project, tab ? undefined : 'closed'].filter(Boolean);
+		if (details.length > 0) {
+			item.description = `· ${details.join(' · ')}`;
+		}
+		if (uri) {
+			item.tooltip = buildTabTooltip(uri, label);
 		}
 		const ref: TabRef = { key, tab };
 		item.command = {
