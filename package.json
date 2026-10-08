@@ -4,6 +4,13 @@
   "description": "Group and color-code VS Code editor tabs, similar to Microsoft Edge tab groups.",
   "version": "0.1.0",
   "publisher": "mojokeylay",
+  "author": {
+    "name": "mojokeylay",
+    "url": "https://github.com/mojokeylay"
+  },
+  "contributors": [
+    "erin (https://github.com/erincerys)"
+  ],
   "icon": "resources/icon.png",
   "repository": {
     "type": "git",
