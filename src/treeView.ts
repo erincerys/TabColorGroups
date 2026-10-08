@@ -43,7 +43,7 @@ function flattenTabs(): Map<string, vscode.Tab> {
 	return map;
 }
 
-function uriFromKey(key: string): vscode.Uri | undefined {
+export function uriFromKey(key: string): vscode.Uri | undefined {
 	if (key.startsWith('diff:')) {
 		return undefined;
 	}

@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { COLOR_PALETTE } from './colors';
 import { GroupManager, TabGroupRecord, getTabKey } from './groupManager';
 import { TabGroupDecorationProvider } from './decorationProvider';
-import { GroupNode, TabGroupsTreeDataProvider, TabNode, TabRef } from './treeView';
+import { GroupNode, TabGroupsTreeDataProvider, TabNode, TabRef, TreeNode, uriFromKey } from './treeView';
 import { organizeTabs } from './tabOrganizer';
 
 function flattenLiveTabs(): vscode.Tab[] {
@@ -43,6 +43,21 @@ async function resolveGroup(manager: GroupManager, node: GroupNode | TabNode | u
 		return node.group;
 	}
 	return pickGroup(manager, placeHolder);
+}
+
+const FILE_ACTIONS: Record<string, string> = {
+	openToSide: 'explorer.openToSide',
+	revealInExplorer: 'revealInExplorer',
+	revealInOS: 'revealFileInOS',
+	openInTerminal: 'openInIntegratedTerminal',
+	selectForCompare: 'selectForCompare',
+	compareWithSelected: 'compareFiles',
+	copyPath: 'copyFilePath',
+	copyRelativePath: 'copyRelativeFilePath',
+};
+
+function fileUriOf(node: TreeNode | undefined): vscode.Uri | undefined {
+	return node?.type === 'tab' || node?.type === 'ungrouped-tab' ? uriFromKey(node.key) : undefined;
 }
 
 const SETUP_PROMPTED_KEY = 'tabColorGroups.setupPromptShown';
@@ -143,12 +158,24 @@ export function activate(context: vscode.ExtensionContext) {
 		}, 500);
 	};
 
+	const treeView = vscode.window.createTreeView('tabColorGroups.view', { treeDataProvider: treeProvider, dragAndDropController: treeProvider });
 	context.subscriptions.push(
 		vscode.window.registerFileDecorationProvider(new TabGroupDecorationProvider(manager, output)),
-		vscode.window.createTreeView('tabColorGroups.view', { treeDataProvider: treeProvider, dragAndDropController: treeProvider }),
+		treeView,
 		vscode.window.tabGroups.onDidChangeTabs(schedulePrune),
 		new vscode.Disposable(() => clearTimeout(pruneTimer))
 	);
+
+	for (const [action, builtinCommand] of Object.entries(FILE_ACTIONS)) {
+		context.subscriptions.push(
+			vscode.commands.registerCommand(`tabColorGroups.file.${action}`, async (node?: TreeNode) => {
+				const uri = fileUriOf(node ?? treeView.selection[0]);
+				if (uri) {
+					await vscode.commands.executeCommand(builtinCommand, uri);
+				}
+			})
+		);
+	}
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('tabColorGroups.refresh', () => treeProvider.refresh()),
@@ -310,13 +337,13 @@ export function activate(context: vscode.ExtensionContext) {
 			if (node.tab) {
 				const input = node.tab.input;
 				if (input instanceof vscode.TabInputText) {
-					await vscode.window.showTextDocument(input.uri, { viewColumn: node.tab.group.viewColumn, preview: false });
+					await vscode.window.showTextDocument(input.uri, { viewColumn: node.tab.group.viewColumn, preview: false, preserveFocus: true });
 					return;
 				}
 			}
 			try {
 				const uri = vscode.Uri.parse(node.key);
-				await vscode.commands.executeCommand('vscode.open', uri, { preview: false });
+				await vscode.commands.executeCommand('vscode.open', uri, { preview: false, preserveFocus: true });
 			} catch {
 				vscode.window.showWarningMessage('Unable to reopen this tab.');
 			}

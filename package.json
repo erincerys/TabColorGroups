@@ -2,7 +2,7 @@
   "name": "tab-color-groups",
   "displayName": "Tab Color Groups",
   "description": "Group and color-code VS Code editor tabs, similar to Microsoft Edge tab groups.",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "publisher": "mojokeylay",
   "icon": "resources/icon.png",
   "repository": {
@@ -113,6 +113,60 @@
         "title": "Enable Git Decorations",
         "category": "Tab Groups",
         "icon": "$(circle-slash)"
+      },
+      {
+        "command": "tabColorGroups.file.openToSide",
+        "title": "Open to the Side",
+        "category": "Tab Groups"
+      },
+      {
+        "command": "tabColorGroups.file.revealInExplorer",
+        "title": "Reveal in Explorer View",
+        "category": "Tab Groups"
+      },
+      {
+        "command": "tabColorGroups.file.revealInOS",
+        "title": "Reveal in File Manager",
+        "category": "Tab Groups"
+      },
+      {
+        "command": "tabColorGroups.file.openInTerminal",
+        "title": "Open in Integrated Terminal",
+        "category": "Tab Groups"
+      },
+      {
+        "command": "tabColorGroups.file.selectForCompare",
+        "title": "Select for Compare",
+        "category": "Tab Groups"
+      },
+      {
+        "command": "tabColorGroups.file.compareWithSelected",
+        "title": "Compare with Selected",
+        "category": "Tab Groups"
+      },
+      {
+        "command": "tabColorGroups.file.copyPath",
+        "title": "Copy Path",
+        "category": "Tab Groups"
+      },
+      {
+        "command": "tabColorGroups.file.copyRelativePath",
+        "title": "Copy Relative Path",
+        "category": "Tab Groups"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "tabColorGroups.file.copyRelativePath",
+        "key": "ctrl+c",
+        "mac": "cmd+c",
+        "when": "focusedView == tabColorGroups.view && !inputFocus"
+      },
+      {
+        "command": "tabColorGroups.file.copyPath",
+        "key": "ctrl+shift+c",
+        "mac": "cmd+shift+c",
+        "when": "focusedView == tabColorGroups.view && !inputFocus"
       }
     ],
     "menus": {
@@ -183,7 +237,57 @@
           "command": "tabColorGroups.addActiveTabToGroup",
           "when": "view == tabColorGroups.view && viewItem == ungrouped-tab",
           "group": "inline@1"
+        },
+        {
+          "command": "tabColorGroups.file.openToSide",
+          "when": "view == tabColorGroups.view && viewItem =~ /^(ungrouped-)?tab$/",
+          "group": "navigation@1"
+        },
+        {
+          "command": "tabColorGroups.file.revealInExplorer",
+          "when": "view == tabColorGroups.view && viewItem =~ /^(ungrouped-)?tab$/",
+          "group": "2_reveal@1"
+        },
+        {
+          "command": "tabColorGroups.file.revealInOS",
+          "when": "view == tabColorGroups.view && viewItem =~ /^(ungrouped-)?tab$/",
+          "group": "2_reveal@2"
+        },
+        {
+          "command": "tabColorGroups.file.openInTerminal",
+          "when": "view == tabColorGroups.view && viewItem =~ /^(ungrouped-)?tab$/",
+          "group": "2_reveal@3"
+        },
+        {
+          "command": "tabColorGroups.file.selectForCompare",
+          "when": "view == tabColorGroups.view && viewItem =~ /^(ungrouped-)?tab$/",
+          "group": "3_compare@1"
+        },
+        {
+          "command": "tabColorGroups.file.compareWithSelected",
+          "when": "view == tabColorGroups.view && viewItem =~ /^(ungrouped-)?tab$/ && resourceSelectedForCompare",
+          "group": "3_compare@2"
+        },
+        {
+          "command": "tabColorGroups.file.copyPath",
+          "when": "view == tabColorGroups.view && viewItem =~ /^(ungrouped-)?tab$/",
+          "group": "4_copypath@1"
+        },
+        {
+          "command": "tabColorGroups.file.copyRelativePath",
+          "when": "view == tabColorGroups.view && viewItem =~ /^(ungrouped-)?tab$/",
+          "group": "4_copypath@2"
         }
+      ],
+      "commandPalette": [
+        { "command": "tabColorGroups.file.openToSide", "when": "false" },
+        { "command": "tabColorGroups.file.revealInExplorer", "when": "false" },
+        { "command": "tabColorGroups.file.revealInOS", "when": "false" },
+        { "command": "tabColorGroups.file.openInTerminal", "when": "false" },
+        { "command": "tabColorGroups.file.selectForCompare", "when": "false" },
+        { "command": "tabColorGroups.file.compareWithSelected", "when": "false" },
+        { "command": "tabColorGroups.file.copyPath", "when": "false" },
+        { "command": "tabColorGroups.file.copyRelativePath", "when": "false" }
       ],
       "editor/title/context": [
         {
